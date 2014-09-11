@@ -1147,6 +1147,10 @@ window.Raphael && window.Raphael.canvas && function (R) {
                     node = new CircleFauxNode(parent);
                     break;
 
+                case 'ellipse':
+                    node = new EllipseFauxNode(parent);
+                    break;
+
                 case 'path':
                     node = new PathFauxNode(parent);
                     break;
@@ -1440,18 +1444,26 @@ window.Raphael && window.Raphael.canvas && function (R) {
 
             o.drawPath(path);
 
+            ctx.save();
+            var fillAlpha = attrs['fill-opacity'] === undefined ? attrs['opacity'] : attrs['fill-opacity'];
+
+            if (fillAlpha !== undefined) {
+                ctx.globalAlpha = fillAlpha;
+            }
+
+            ctx.fill();
+            ctx.restore();
+            
             if (attrs['stroke-width']) {
+                ctx.save();
                 var strokeAlpha = attrs['stroke-opacity'] === undefined ? attrs['opacity'] : attrs['stroke-opacity'];
                 if (strokeAlpha !== undefined) {
                     ctx.globalAlpha = strokeAlpha;
                 }
                 ctx.stroke();
+                ctx.restore();
             }
-            var fillAlpha = attrs['fill-opacity'] === undefined ? attrs['opacity'] : attrs['fill-opacity'];
-            if (fillAlpha !== undefined) {
-                ctx.globalAlpha = fillAlpha;
-            }
-            ctx.fill();
+            
 
             return;
         },
@@ -1543,6 +1555,15 @@ window.Raphael && window.Raphael.canvas && function (R) {
         this.layer = parentObj.currentLayer;
     },
 
+    EllipseFauxNode = function (parentObj) {
+        this.type = "ellipse";
+        this._isValid = false;
+
+        this.parent = this.owner = parentObj;
+        this.context = parentObj.getCurrentContext();
+        this.layer = parentObj.currentLayer;
+    },
+
     PathFauxNode = function (parentObj) {
         this.type = "path";
         this._isValid = false;
@@ -1596,19 +1617,24 @@ window.Raphael && window.Raphael.canvas && function (R) {
             if (attrs.r) {
 
                 o.drawPath(["M", x + r, y, "A", rx, ry, 0, 1, 0, x - r, y, "A", rx, ry, 0, 1, 0, x + r, y, "Z"]);
-
-                if (attrs['stroke-width']) {
-                    var strokeAlpha = attrs['stroke-opacity'] === undefined ? attrs['opacity'] : attrs['stroke-opacity'];
-                    if (strokeAlpha !== undefined) {
-                        ctx.globalAlpha = strokeAlpha;
-                    }
-                    ctx.stroke();
-                }
+                ctx.save();
                 var fillAlpha = attrs['fill-opacity'] === undefined ? attrs['opacity'] : attrs['fill-opacity'];
                 if (fillAlpha !== undefined) {
                     ctx.globalAlpha = fillAlpha;
                 }
                 ctx.fill();
+                ctx.restore();
+
+                if (attrs['stroke-width']) {
+                    ctx.save();
+                    var strokeAlpha = attrs['stroke-opacity'] === undefined ? attrs['opacity'] : attrs['stroke-opacity'];
+                    if (strokeAlpha !== undefined) {
+                        ctx.globalAlpha = strokeAlpha;
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+                }
+                
             }
 
             return;
@@ -1627,6 +1653,74 @@ window.Raphael && window.Raphael.canvas && function (R) {
             o._bbox = {
                 x: tX + ((attrs.cx - attrs.r) * sX) - strokeW,
                 y: tY + ((attrs.cy - attrs.r) * sY) - strokeW,
+                width: 2 * (strokeW + (attrs.r * sX)),
+                height: 2 * ((attrs.r * sY) + strokeW)
+            };
+
+            o._bbox.x2 = o._bbox.x + o._bbox.width;
+            o._bbox.y2 = o._bbox.y + o._bbox.height;
+
+            o.X = o._bbox.x;
+            o.Y = o._bbox.y;
+            o.W = o._bbox.width;
+            o.H = o._bbox.height;
+        }
+    });
+
+    EllipseFauxNode.prototype = R.extend(new FauxNode(), {
+
+        constructor: EllipseFauxNode,
+
+        paint: function () {
+            var o = this,
+                ctx = o.context,
+                attrs = o.validateAttrs(),
+                x = attrs.cx,
+                y = attrs.cy,
+                r = attrs.r,
+                /** @todo: provide support for rx, ry */
+                rx = attrs.rx || r,
+                ry = attrs.ry || r;
+
+            if (attrs.rx && attrs.ry) {
+
+                o.drawPath(["M", x + rx, y, "A", rx, ry, 0, 1, 0, x - rx, y, "A", rx, ry, 0, 1, 0, x + rx, y, "Z"]);
+                ctx.save();
+                var fillAlpha = attrs['fill-opacity'] === undefined ? attrs['opacity'] : attrs['fill-opacity'];
+                if (fillAlpha !== undefined) {
+                    ctx.globalAlpha = fillAlpha;
+                }
+                ctx.fill();
+                ctx.restore();
+
+                if (attrs['stroke-width']) {
+                    ctx.save();
+                    var strokeAlpha = attrs['stroke-opacity'] === undefined ? attrs['opacity'] : attrs['stroke-opacity'];
+                    if (strokeAlpha !== undefined) {
+                        ctx.globalAlpha = strokeAlpha;
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+                }
+                
+            }
+
+            return;
+        },
+
+        setShapeBBox: function (m) {
+            var o = this,
+                el = o._rElement,
+                attrs = el.attrs,
+                sX = m.get(0),
+                sY = m.get(3),
+                tX = m.get(4),
+                tY = m.get(5),
+                strokeW = attrs['stroke-width'];
+
+            o._bbox = {
+                x: tX + ((attrs.cx - attrs.rx) * sX) - strokeW,
+                y: tY + ((attrs.cy - attrs.ry) * sY) - strokeW,
                 width: 2 * (strokeW + (attrs.r * sX)),
                 height: 2 * ((attrs.r * sY) + strokeW)
             };
@@ -1660,16 +1754,21 @@ window.Raphael && window.Raphael.canvas && function (R) {
             o.drawPath(path);
             o._transformPath = R.transformPath(path, m.toTransformString());
 
-            var strokeAlpha = attrs['stroke-opacity'] === undefined ? attrs['opacity'] : attrs['stroke-opacity'];
-            if (strokeAlpha !== undefined) {
-                ctx.globalAlpha = strokeAlpha;
-            }
-            ctx.stroke();
+            ctx.save();
             var fillAlpha = attrs['fill-opacity'] === undefined ? attrs['opacity'] : attrs['fill-opacity'];
             if (fillAlpha !== undefined) {
                 ctx.globalAlpha = fillAlpha;
             }
             ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            var strokeAlpha = attrs['stroke-opacity'] === undefined ? attrs['opacity'] : attrs['stroke-opacity'];
+            if (strokeAlpha !== undefined) {
+                ctx.globalAlpha = strokeAlpha;
+            }
+            ctx.stroke();
+            ctx.restore();
 
             return;
         }
@@ -1763,7 +1862,7 @@ window.Raphael && window.Raphael.canvas && function (R) {
                 "V",
                 startY - (lineHeight / 1.4)
             ];
-
+            // todo: check scope of fill and stroke for text
             return;
         }
     });
@@ -1936,13 +2035,13 @@ window.Raphael && window.Raphael.canvas && function (R) {
 
                         case 'fill-opacity':
                         case 'opacity':
-                        case 'stroke-opcaity':
+                        case 'stroke-opacity':
                         case 'stroke':
                         case 'fill':
                             finalAttrs[att] = val;
                             needsRepaint = true;
                             break;
-
+                        //todo - nrc: why should stroke width change position?!
                         case 'stroke-width':
                         case "cx":
                         case "cy":
@@ -2123,17 +2222,18 @@ window.Raphael && window.Raphael.canvas && function (R) {
         var node = paper.com.createNode('rect', group && group.node),
             el = new Element(node, paper, group),
             attrs = el.attrs;
+            //attrs = x;
 
-        attrs.x = x;
-        attrs.y = y;
-        attrs.width = w;
-        attrs.height = h;
+        attrs.x = x.x || x;
+        attrs.y = x.y || y;
+        attrs.width = x.width || w;
+        attrs.height = x.height || h;
         attrs.fill = "#fff";
         attrs.stroke = "#000";
         attrs['stroke-width'] = 1;
-        attrs.r = r || 0;
-        attrs.rx = r || 0;
-        attrs.ry = r || 0;
+        attrs.r = x.r || 0;
+        attrs.rx = x.r || 0;
+        attrs.ry = x.r || 0;
 
         el.type = "rect";
 
@@ -2146,9 +2246,9 @@ window.Raphael && window.Raphael.canvas && function (R) {
             el = new Element(node, paper, group),
             attrs = el.attrs;
 
-        attrs.cx = x;
-        attrs.cy = y;
-        attrs.r = r;
+        attrs.cx = x.cx || x;
+        attrs.cy = x.cy || y;
+        attrs.r = x.r || r;
         attrs.fill = 'none';
         attrs.stroke = '#000';
         attrs['stroke-width'] = 1;
@@ -2160,10 +2260,21 @@ window.Raphael && window.Raphael.canvas && function (R) {
     };
 
     R._engine.ellipse = function(paper, x, y, rx, ry, group) {
-        var node = new FauxNode(),
-            el = new Element(node, paper, group);
+        var node = paper.com.createNode('ellipse', group && group.node),
+            el = new Element(node, paper, group),
+            attrs = el.attrs;
+
+        attrs.cx = x.x || x;
+        attrs.cy = x.y || y;
+        attrs.rx = x.rx || r;
+        attrs.ry = x.ry || r;
+        attrs.fill = 'none';
+        attrs.stroke = '#000';
+        attrs['stroke-width'] = 1;
 
         el.type = "ellipse";
+
+        node.render();
         return el;
     };
 
@@ -2180,9 +2291,9 @@ window.Raphael && window.Raphael.canvas && function (R) {
             el = new Element(node, paper, group),
             attrs = el.attrs;
 
-        attrs.x = x;
-        attrs.y = y;
-        attrs.text = text;
+        attrs.x = x.x || x;
+        attrs.y = x.y || y;
+        attrs.text = x.text || text;
         attrs.fill = 'none';
         attrs.stroke = '#000';
         attrs.font = 'Verdana';
@@ -2195,12 +2306,12 @@ window.Raphael && window.Raphael.canvas && function (R) {
         return el;
     };
 
-    R._engine.path = function(pathString, paper, group) {
+    R._engine.path = function(paper, pathString, group) {
         var node = paper.com.createNode('path', group && group.node),
             el = new Element(node, paper, group),
             attrs = el.attrs;
 
-        attrs.path = pathString;
+        attrs.path = pathString.path || pathString;
         attrs.fill = "#fff";
         attrs.stroke = "#000";
         attrs['stroke-width'] = 1;

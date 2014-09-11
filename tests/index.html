@@ -1,23 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script type="text/javascript">
+	ENABLE_RED_CANVAS = true;
+</script>
 <!-- <script type="text/javascript" src="../helper/logger.js"></script> -->
 <script type="text/javascript" src="../source/eve/eve.js"></script>
 <script type="text/javascript" src="../source/raphael.core.js"></script>
 <script type="text/javascript" src="../source/raphael.svg.js"></script>
 <script type="text/javascript" src="../source/raphael.vml.js"></script>
+<script type="text/javascript" src="../source/raphael.canvas.js"></script>
 <script type="text/javascript">
-Raphael(10, 10, 600, 400, function () {
-    var paper = window.pap = this;
+window.onload = function () {
+	Raphael(10, 10, 800, 800, function () {
+	    var paper = window.pap = this;
+	    /*paper.rect(50, 350, 100, 100)
+	    .attr({fill: '#0000ff', stroke: '#ff0000', 'stroke-width': '10', 'fill-opacity': '0.5', 'stroke-opacity': '0.3'});
 
-    paper.text({
-        text: ['Use index.html as a template to work on temporary workspace!',
-               '',
-               'Ensure that your test files are named spec-<somename>.html'],
-        'text-anchor': 'left',
-        'vertical-align': 'top'
-    });
-});
+	    paper.circle(250, 250, 50)
+	    .attr({fill: '#0000ff', stroke: '#ff0000', 'stroke-width': '10', 'fill-opacity': '0.5', 'stroke-opacity': '0.3'});
+
+		paper.rect(50, 200, 100, 100, 30)
+	    .attr({fill: '#0000ff', stroke: '#ff0000', 'stroke-width': '10', 'fill-opacity': '0.5', 'stroke-opacity': '0.3'});
+		
+		paper.ellipse(250, 400, 50, 80)
+	    .attr({fill: '#0000ff', stroke: '#ff0000', 'stroke-width': '10', 'fill-opacity': '0.5', 'stroke-opacity': '0.3'});
+
+	    paper.path(["M", 120, 100, "L", 200, 100, 200, 170, "H", 70, "V", 70, "A", 100, 50, 0, 1, 1, 225, 125, "Q", 240, 30, 300, 120, "T", 400, 120 ])
+	    .attr({fill: '#0000ff', stroke: '#ff0000', 'stroke-width': '10', 'fill-opacity': '0.5', 'stroke-opacity': '0.3'});
+*/
+	    paper.text({text: "Path & Shapes", x: 70, y: 20})
+	    .attr({'font-size': '20', font: 'Arial', fill: '#ff0000'});
+
+
+	    //paper.text({text: "Path Drawing", x: 70, y: 20});
+
+
+	    /*paper.text({
+	    	
+	        text: ['Use index.html as a template to work on temporary workspace!',
+	               '',
+	               'Ensure that your test files are named spec-<somename>.html'],
+	        'text-anchor': 'left',
+	        'vertical-align': 'top'
+	    });*/
+	});
+}
+
 </script>
 </head>
 
