@@ -101,7 +101,7 @@ module.exports = function(grunt) {
                     });
 
                     // Excluding canvas.js in raphael-fusioncharts.js
-                    if (!/canvas\.js/.test(path)) {
+                    //if (!/canvas\.js/.test(path)) {
                         // Add source before EXPOSE line
                         compiledFc.replace(exposeRegex, function () {
                             // Using this method instead of the raphael way as it makes it difficult to
@@ -111,7 +111,7 @@ module.exports = function(grunt) {
 
                             compiledFc = (text.slice(0, index) + source + text.slice(index));
                         });
-                    }
+                    //}
                 } else {
                     compiled += source;
                     compiledFc += source;

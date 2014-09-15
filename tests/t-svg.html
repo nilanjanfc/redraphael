@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript">
+	//ENABLE_RED_CANVAS = true;
+</script>
+<!-- <script type="text/javascript" src="../helper/logger.js"></script> -->
+<script type="text/javascript" src="../source/eve/eve.js"></script>
+<script type="text/javascript" src="../source/raphael.core.js"></script>
+<script type="text/javascript" src="../source/raphael.svg.js"></script>
+<script type="text/javascript" src="../source/raphael.vml.js"></script>
+<script type="text/javascript" src="../source/raphael.canvas.js"></script>
+<script type="text/javascript">
+window.onload = function () {
+	Raphael(10, 10, 800, 800, function () {
+	    var paper = window.pap = this,
+	    	c1 = paper.circle(100, 100, 50)
+	    	.attr({fill: '#aaddff'}),
+	    	r1 = paper.rect(100, 100, 100, 100)
+	    	.attr({fill: '#ffddaa'});
+
+	    r1.insertBefore(c1);
+	  	  
+	});
+}
+
+</script>
+</head>
+
+<body>
+</body>
+</html>

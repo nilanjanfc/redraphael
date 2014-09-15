@@ -882,9 +882,20 @@ window.Raphael && window.Raphael.canvas && function (R) {
         },
 
         insertBefore: function () {
+            return this;
         },
 
         insertAfter: function () {
+            return this;
+        },
+
+
+        appendChild: function(element) {
+            return this;
+        },
+
+        removeChild: function(element) {
+            return this;
         },
 
         each: function (fn, args) {
@@ -1425,8 +1436,8 @@ window.Raphael && window.Raphael.canvas && function (R) {
                 h = attrs.height,
                 r = attrs.r,
                 /** @todo: provide support for rx, ry */
-                rx = r || attrs.rx,
-                ry = r || attrs.ry;
+                rx = attrs.rx || r,
+                ry = attrs.ry || r;
 
             if (attrs.r) {
                 path = ["M", x + rx, y, "L", x + w - rx, y]
@@ -1511,6 +1522,11 @@ window.Raphael && window.Raphael.canvas && function (R) {
                         };
                         break;
 
+                    case "stroke":
+                    case "fill":
+                        if (val === "none") {
+                            attrs[attr] = "rgba(0,0,0,0)";
+                        }
                     default:
                         continue;
                 }
@@ -1877,8 +1893,8 @@ window.Raphael && window.Raphael.canvas && function (R) {
             this.layerItems.each(function () {
                 this.element.width = this.element.width;
             });
-
-            FauxNode.prototype.draw.apply(this, arguments);
+			// @todo: Do we need to draw for group at all?
+            //FauxNode.prototype.draw.apply(this, arguments);
         },
 
         /**
@@ -2217,13 +2233,12 @@ window.Raphael && window.Raphael.canvas && function (R) {
         return el.node || el[el.length - 1].node;
     };
 
-    R._engine.rect = function(paper, x, y, w, h, r, group) {
+    R._engine.rect = function(paper, attrs, group) {
 
         var node = paper.com.createNode('rect', group && group.node),
-            el = new Element(node, paper, group),
-            attrs = el.attrs;
-            //attrs = x;
-
+            el = new Element(node, paper, group);
+        el.attrs = attrs;
+/*
         attrs.x = x.x || x;
         attrs.y = x.y || y;
         attrs.width = x.width || w;
@@ -2234,36 +2249,34 @@ window.Raphael && window.Raphael.canvas && function (R) {
         attrs.r = x.r || 0;
         attrs.rx = x.r || 0;
         attrs.ry = x.r || 0;
-
+*/
         el.type = "rect";
-
         node.render();
         return el;
     };
 
-    R._engine.circle = function(paper, x, y, r, group) {
+    R._engine.circle = function(paper, attrs, group) {
         var node = paper.com.createNode('circle', group && group.node),
-            el = new Element(node, paper, group),
-            attrs = el.attrs;
-
+            el = new Element(node, paper, group);
+        el.attrs = attrs;
+/*
         attrs.cx = x.cx || x;
         attrs.cy = x.cy || y;
         attrs.r = x.r || r;
         attrs.fill = 'none';
         attrs.stroke = '#000';
         attrs['stroke-width'] = 1;
-
+*/
         el.type = "circle";
-
         node.render();
         return el;
     };
 
-    R._engine.ellipse = function(paper, x, y, rx, ry, group) {
+    R._engine.ellipse = function(paper, attrs, group) {
         var node = paper.com.createNode('ellipse', group && group.node),
-            el = new Element(node, paper, group),
-            attrs = el.attrs;
-
+            el = new Element(node, paper, group);
+        el.attrs = attrs;
+/*
         attrs.cx = x.x || x;
         attrs.cy = x.y || y;
         attrs.rx = x.rx || r;
@@ -2271,9 +2284,8 @@ window.Raphael && window.Raphael.canvas && function (R) {
         attrs.fill = 'none';
         attrs.stroke = '#000';
         attrs['stroke-width'] = 1;
-
+*/
         el.type = "ellipse";
-
         node.render();
         return el;
     };
@@ -2286,40 +2298,28 @@ window.Raphael && window.Raphael.canvas && function (R) {
         return el;
     };
 
-    R._engine.text = function(paper, x, y, text, group) {
+    R._engine.text = function(paper, attrs, group) {
         var node = paper.com.createNode('text', group && group.node),
-            el = new Element(node, paper, group),
-            attrs = el.attrs;
-
-        attrs.x = x.x || x;
-        attrs.y = x.y || y;
-        attrs.text = x.text || text;
-        attrs.fill = 'none';
-        attrs.stroke = '#000';
-        attrs.font = 'Verdana';
-        attrs['font-size'] = '12px';
-        attrs['vertical-align'] = 'middle';
-        attrs['text-anchor'] = 'middle'
+            el = new Element(node, paper, group);
+        el.attrs = attrs;
 
         el.type = "text";
         node.render();
         return el;
     };
 
-    R._engine.path = function(paper, pathString, group) {
+    R._engine.path = function(paper, attrs, group) {
         var node = paper.com.createNode('path', group && group.node),
-            el = new Element(node, paper, group),
-            attrs = el.attrs;
-
+            el = new Element(node, paper, group);
+        el.attrs = attrs;
+/*
         attrs.path = pathString.path || pathString;
         attrs.fill = "#fff";
         attrs.stroke = "#000";
         attrs['stroke-width'] = 1;
-
+*/
         el.type = "path";
-
         node.render();
-
         return el;
     };
 
@@ -2373,7 +2373,7 @@ window.Raphael && window.Raphael.canvas && function (R) {
                 parent.canvas.appendChild(thisNode);
             }
             else {
-                parentNode.nodeList.tofront(thisNode);
+                parentNode.nodeItems.tofront(thisNode);
             }
         }
 
@@ -2403,7 +2403,7 @@ window.Raphael && window.Raphael.canvas && function (R) {
                 parent.canvas.appendChild(thisNode);
             }
             else {
-                parentNode.nodeList.toback(thisNode);
+                parentNode.nodeItems.toback(thisNode);
             }
         }
 
@@ -2430,10 +2430,10 @@ window.Raphael && window.Raphael.canvas && function (R) {
             ii;
 
         if (thatNode.next) {
-            parentNode.nodeList.insertBefore(thisNode, thatNode.next);
+            parentNode.nodeItems.insertBefore(thisNode, thatNode.next);
         }
         else {
-            parentNode.appendChild(thisNode);
+            parentNode.nodeItems.appendChild(thisNode);
         }
 
         R._insertafter(o, element, o.parent, element.parent);
@@ -2461,10 +2461,10 @@ window.Raphael && window.Raphael.canvas && function (R) {
             ii;
 
         if (thatNode) {
-            parentNode.nodeList.insertBefore(thisNode, thatNode);
+            parentNode.nodeItems.insertBefore(thisNode, thatNode);
         }
         else {
-            parentNode.appendChild(thisNode);
+            parentNode.nodeItems.appendChild(thisNode);
         }
 
         R._insertafter(o, element, o.parent, element.parent);
