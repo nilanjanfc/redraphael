@@ -1,22 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<script type="text/javascript">
+		window.ENABLE_RED_CANVAS = true;
+	</script>
 <!-- <script type="text/javascript" src="../helper/logger.js"></script> -->
 <script type="text/javascript" src="../source/eve/eve.js"></script>
 <script type="text/javascript" src="../source/raphael.core.js"></script>
 <script type="text/javascript" src="../source/raphael.svg.js"></script>
-<script type="text/javascript" src="../source/raphael.vml.js"></script>
+<script type="text/javascript" src="../source/raphael.canvas.js"></script>
 <script type="text/javascript">
 Raphael(10, 10, 600, 400, function () {
-    var paper = window.pap = this;
+    var paper = window.pap = this,
+    	r1,
+    	d1;
+	
+	d1 = new Date().getTime();
+    for (var i=0; i < 100; i++) {
 
-    paper.text({
-        text: ['Use index.html as a template to work on temporary workspace!',
-               '',
-               'Ensure that your test files are named spec-<somename>.html'],
-        'text-anchor': 'left',
-        'vertical-align': 'top'
-    });
+    	r1 = paper.rect(100, 100, 200, 50)
+    		.attr({fill: '#aaddff', stroke: '#ffddaa', 'stroke-width': '5'});
+	}
+	paper.render()
+	console.log(new Date().getTime() - d1);
+	
+	//d1 = new Date().getTime();
+	//paper.render()
+	//console.log(new Date().getTime() - d1);
 });
 </script>
 </head>
